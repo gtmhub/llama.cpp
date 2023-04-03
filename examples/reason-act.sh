@@ -10,7 +10,7 @@ if [ "$1" == "-m" ]; then
 fi
 
 ./main $MODEL --color \
-    -f ./prompts/reason-act.txt \
+    -f ./examples/prompts/reason-act.txt \
     -i --interactive-first \
     --top_k 10000 --temp 0.2 --repeat_penalty 1 -t 7 -c 2048 \
     -r "Question:" -r "Observation:" --in-prefix " " \

@@ -210,7 +210,7 @@ Here is an example few-shot interaction, invoked with the command
 ./examples/chat-13B.sh
 
 # custom arguments using 13B model
-./main -m ./models/13B/ggml-model-q4_0.bin -n 256 --repeat_penalty 1.0 --color -i -r "User:" -f prompts/chat-with-bob.txt
+./main -m ./models/13B/ggml-model-q4_0.bin -n 256 --repeat_penalty 1.0 --color -i -r "User:" -f examples/prompts/chat-with-bob.txt
 ```
 
 Note the use of `--color` to distinguish between user input and generated text.

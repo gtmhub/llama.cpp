@@ -26,45 +26,19 @@ ifeq ($(UNAME_S),Darwin)
 	endif
 endif
 
-#
+# =========================================================
 # Compile flags
 #
 
 # keep standard at C11 and C++11
-CFLAGS   = -I.              -O3 -DNDEBUG -std=c11   -fPIC
-CXXFLAGS = -I. -I./examples -O3 -DNDEBUG -std=c++11 -fPIC
+# NOTE: This will not support Windows
+CFLAGS   = -I.              -O3 -DNDEBUG -std=c11   -fPIC -pthread
+CXXFLAGS = -I. -I./examples -O3 -DNDEBUG -std=c++17 -fPIC -pthread
 LDFLAGS  =
 
-# warnings
+# Warnings
 CFLAGS   += -Wall -Wextra -Wpedantic -Wcast-qual -Wdouble-promotion -Wshadow -Wstrict-prototypes -Wpointer-arith -Wno-unused-function
 CXXFLAGS += -Wall -Wextra -Wpedantic -Wcast-qual -Wno-unused-function
-
-# OS specific
-# TODO: support Windows
-ifeq ($(UNAME_S),Linux)
-	CFLAGS   += -pthread
-	CXXFLAGS += -pthread
-endif
-ifeq ($(UNAME_S),Darwin)
-	CFLAGS   += -pthread
-	CXXFLAGS += -pthread
-endif
-ifeq ($(UNAME_S),FreeBSD)
-	CFLAGS   += -pthread
-	CXXFLAGS += -pthread
-endif
-ifeq ($(UNAME_S),NetBSD)
-	CFLAGS   += -pthread
-	CXXFLAGS += -pthread
-endif
-ifeq ($(UNAME_S),OpenBSD)
-	CFLAGS   += -pthread
-	CXXFLAGS += -pthread
-endif
-ifeq ($(UNAME_S),Haiku)
-	CFLAGS   += -pthread
-	CXXFLAGS += -pthread
-endif
 
 # Architecture specific
 # TODO: probably these flags need to be tweaked on some architectures
@@ -118,7 +92,7 @@ ifneq ($(filter armv8%,$(UNAME_M)),)
 	CFLAGS += -mfp16-format=ieee -mno-unaligned-access
 endif
 
-#
+# =========================================================
 # Print build information
 #
 
@@ -139,34 +113,34 @@ default: main quantize perplexity embedding
 # Build library
 #
 
-ggml.o: ggml.c ggml.h
-	$(CC)  $(CFLAGS)   -c ggml.c -o ggml.o
+ggml.o: ggml/ggml.c ggml/ggml.h
+	$(CC) $(CFLAGS) -c ggml.c -o build/ggml.o
 
 llama.o: llama.cpp llama.h
-	$(CXX) $(CXXFLAGS) -c llama.cpp -o llama.o
+	$(CXX) $(CXXFLAGS) -c llama.cpp -o build/llama.o
 
 common.o: examples/common.cpp examples/common.h
-	$(CXX) $(CXXFLAGS) -c examples/common.cpp -o common.o
+	$(CXX) $(CXXFLAGS) -c examples/common.cpp -o build/common.o
 
 clean:
 	rm -vf *.o main quantize perplexity embedding
 
-main: examples/main/main.cpp ggml.o llama.o common.o
-	$(CXX) $(CXXFLAGS) examples/main/main.cpp ggml.o llama.o common.o -o main $(LDFLAGS)
+main: examples/main/main.cpp build/ggml.o build/llama.o build/common.o
+	$(CXX) $(CXXFLAGS) examples/main/main.cpp build/ggml.o build/llama.o build/common.o -o build/main $(LDFLAGS)
 	@echo
 	@echo '====  Run ./main -h for help.  ===='
 	@echo
 
-quantize: examples/quantize/quantize.cpp ggml.o llama.o
-	$(CXX) $(CXXFLAGS) examples/quantize/quantize.cpp ggml.o llama.o -o quantize $(LDFLAGS)
+quantize: examples/quantize/quantize.cpp build/ggml.o build/llama.o
+	$(CXX) $(CXXFLAGS) examples/quantize/quantize.cpp build/ggml.o build/llama.o -o build/quantize $(LDFLAGS)
 
-perplexity: examples/perplexity/perplexity.cpp ggml.o llama.o common.o
-	$(CXX) $(CXXFLAGS) examples/perplexity/perplexity.cpp ggml.o llama.o common.o -o perplexity $(LDFLAGS)
+perplexity: examples/perplexity/perplexity.cpp build/ggml.o build/llama.o build/common.o
+	$(CXX) $(CXXFLAGS) examples/perplexity/perplexity.cpp build/ggml.o build/llama.o build/common.o -o build/perplexity $(LDFLAGS)
 
-embedding: examples/embedding/embedding.cpp ggml.o llama.o common.o
-	$(CXX) $(CXXFLAGS) examples/embedding/embedding.cpp ggml.o llama.o common.o -o embedding $(LDFLAGS)
+embedding: examples/embedding/embedding.cpp build/ggml.o build/llama.o build/common.o
+	$(CXX) $(CXXFLAGS) examples/embedding/embedding.cpp build/ggml.o build/llama.o build/common.o -o build/embedding $(LDFLAGS)
 
-#
+# =========================================================
 # Tests
 #
 
