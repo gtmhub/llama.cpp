@@ -228,8 +228,8 @@ endif()
 #
 
 add_library(ggml OBJECT
-            ggml.c
-            ggml.h)
+            ggml/ggml.c
+            ggml/ggml.h)
 
 target_include_directories(ggml PUBLIC .)
 target_compile_features(ggml PUBLIC c_std_11) # don't bump

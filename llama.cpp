@@ -1,6 +1,6 @@
 #include "llama.h"
 
-#include "ggml.h"
+#include "ggml/ggml.h"
 
 #include <cinttypes>
 #include <fstream>
