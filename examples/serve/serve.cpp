@@ -1,10 +1,15 @@
+#include <stdio.h>
+#include <iostream>
+#include <fstream>
+
 #include "common.h"
 #include "llama.h"
 
 #include "crow.h"
 #include "../main/run_llama.cpp"
 
-auto const BINDPORT = 8081;
+
+auto const BINDPORT = 8001;
 
 int main(int argc, char ** argv) {
     gpt_params params;
@@ -52,25 +57,49 @@ int main(int argc, char ** argv) {
     /// to get streaming to work here. Otherwise I'll have to handle sockets.
 
     CROW_ROUTE(app, "/completion").methods("POST"_method)
-    ([](const crow::request& req){
+    ([&params, &ctx](const crow::request& req){
         auto body = crow::json::load(req.body);
         if (!body) return crow::response(crow::status::BAD_REQUEST);
         
-        // Open the tempfile and get a FP.
         // Set run params from body
-        // run_llama(ctx, params, tempfile);
+        if (body["prompt"])         params.prompt         = body["prompt"].s();
+        if (body["n_predict"])      params.n_predict      = body["n_predict"].i();
+        if (body["top_k"])          params.top_k          = body["top_k"].i();
+        if (body["ctx_size"])       params.n_ctx          = body["ctx_size"].i();
+        if (body["repeat_last_n"])  params.repeat_last_n  = body["repeat_last_n"].i();
+        if (body["top_p"])          params.top_p          = (float)body["top_p"].d();
+        if (body["temp"])           params.temp           = (float)body["temp"].d();
+        if (body["repeat_penalty"]) params.repeat_penalty = (float)body["repeat_penalty"].d();
+
+        // Open the tempfile into a stream.
+        std::ofstream outfile(body["tempfile"].s(), std::ios::out);
+
+        // Write output of LLaMA to file stream.
+        // run_llama(ctx, params, &outfile);
+        for (uint i = 0; i < 1000; i++)
+            *(&outfile) << "Hello there! Babes" << body["prompt"];
+        outfile.close();
 
         return crow::response(crow::status::OK);
     });
 
     CROW_ROUTE(app, "/embedding").methods("POST"_method)
-    ([](const crow::request& req){
+    ([&params, &ctx](const crow::request& req){
         auto body = crow::json::load(req.body);
         if (!body) return crow::response(crow::status::BAD_REQUEST);
         
-        // Open the tempfile and get a FP.
         // Set run params from body
-        // run_llama(ctx, params, tempfile);
+        if (body["prompt"]) params.prompt = body["prompt"].s();
+        params.embedding = true;
+
+        // Open the tempfile into a stream.
+        std::ofstream outfile(body["tempfile"].s(), std::ios::out);
+
+        // Write output of LLaMA to file stream.
+        // run_llama(ctx, params, &outfile);
+        for (uint i = 0; i < 1000; i++)
+            *(&outfile) << (float)i / 1567 << " ";
+        outfile.close();
 
         return crow::response(crow::status::OK);
     });

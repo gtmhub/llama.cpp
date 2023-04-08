@@ -28,9 +28,6 @@ int main(int argc, char ** argv) {
         params.prompt = gpt_random_prompt(rng);
     }
 
-//    params.prompt = R"(// this function checks if the number n is prime
-//bool is_prime(int n) {)";
-
     llama_context * ctx;
     // load the model
     {
@@ -50,6 +47,7 @@ int main(int argc, char ** argv) {
         }
     }
     
-    run_llama(ctx, params, stdout);
+    // Write output of LLaMA to stdout stream.
+    run_llama(ctx, params, &std::cout);
     llama_free(ctx);
 }

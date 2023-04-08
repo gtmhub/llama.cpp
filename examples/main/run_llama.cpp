@@ -30,7 +30,7 @@ void sigint_handler(int signo) {
     }
 }
 
-int run_llama(llama_context * ctx, gpt_params params, FILE* outfile) {
+int run_llama(llama_context * ctx, gpt_params params, std::ostream *outfile) {
     // print system information
     {
         fprintf(stderr, "\n");
@@ -250,7 +250,8 @@ int run_llama(llama_context * ctx, gpt_params params, FILE* outfile) {
         // display text
         if (!input_noecho) {
             for (auto id : embd) {
-                fprintf(outfile, "%s", llama_token_to_str(ctx, id));
+                *outfile << llama_token_to_str(ctx, id);
+                // outfile.flush();
             }
             fflush(stdout);
         }
