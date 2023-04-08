@@ -37,7 +37,7 @@ int main(int argc, char ** argv) {
         lparams.f16_kv     = params.memory_f16;
         lparams.use_mlock  = params.use_mlock;
         
-        // ctx = llama_init_from_file(params.model.c_str(), lparams);
+        ctx = llama_init_from_file(params.model.c_str(), lparams);
 
         if (ctx == NULL) {
             fprintf(stderr, "%s: error: failed to load model '%s'\n", __func__, params.model.c_str());
@@ -75,9 +75,7 @@ int main(int argc, char ** argv) {
         std::ofstream outfile(body["tempfile"].s(), std::ios::out);
 
         // Write output of LLaMA to file stream.
-        // run_llama(ctx, params, &outfile);
-        for (uint i = 0; i < 1000; i++)
-            *(&outfile) << "Hello there! Babes" << body["prompt"];
+        run_llama(ctx, params, &outfile);
         outfile.close();
 
         return crow::response(crow::status::OK);
@@ -96,9 +94,7 @@ int main(int argc, char ** argv) {
         std::ofstream outfile(body["tempfile"].s(), std::ios::out);
 
         // Write output of LLaMA to file stream.
-        // run_llama(ctx, params, &outfile);
-        for (uint i = 0; i < 1000; i++)
-            *(&outfile) << (float)i / 1567 << " ";
+        run_llama(ctx, params, &outfile);
         outfile.close();
 
         return crow::response(crow::status::OK);
