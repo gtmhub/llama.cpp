@@ -1,4 +1,4 @@
-#include "ggml.h"
+#include "ggml/ggml.h"
 #undef NDEBUG
 #include <assert.h>
 #include <math.h>
