@@ -54,7 +54,7 @@ int main(int argc, char ** argv) {
     /// from the stdout of the main process.
     ///
     /// We are doing this because this is probably the simplest way
-    /// to get streaming to work here. Otherwise I'll have to handle sockets.
+    /// to get streaming to work here. Otherwise I'll have to handle raw sockets.
 
     CROW_ROUTE(app, "/completion").methods("POST"_method)
     ([&params, &ctx](const crow::request& req){
@@ -62,14 +62,14 @@ int main(int argc, char ** argv) {
         if (!body) return crow::response(crow::status::BAD_REQUEST);
         
         // Set run params from body
-        if (body["prompt"])         params.prompt         = body["prompt"].s();
-        if (body["n_predict"])      params.n_predict      = body["n_predict"].i();
-        if (body["top_k"])          params.top_k          = body["top_k"].i();
-        if (body["ctx_size"])       params.n_ctx          = body["ctx_size"].i();
-        if (body["repeat_last_n"])  params.repeat_last_n  = body["repeat_last_n"].i();
-        if (body["top_p"])          params.top_p          = (float)body["top_p"].d();
-        if (body["temp"])           params.temp           = (float)body["temp"].d();
-        if (body["repeat_penalty"]) params.repeat_penalty = (float)body["repeat_penalty"].d();
+        params.prompt         = body["prompt"].s();
+        params.n_predict      = body["n_predict"].i();
+        params.top_k          = body["top_k"].i();
+        params.n_ctx          = body["ctx_size"].i();
+        params.repeat_last_n  = body["repeat_last_n"].i();
+        params.top_p          = (float)body["top_p"].d();
+        params.temp           = (float)body["temp"].d();
+        params.repeat_penalty = (float)body["repeat_penalty"].d();
 
         // Open the tempfile into a stream.
         std::ofstream outfile(body["tempfile"].s(), std::ios::out);
@@ -87,7 +87,7 @@ int main(int argc, char ** argv) {
         if (!body) return crow::response(crow::status::BAD_REQUEST);
         
         // Set run params from body
-        if (body["prompt"]) params.prompt = body["prompt"].s();
+        params.prompt = body["prompt"].s();
         params.embedding = true;
 
         // Open the tempfile into a stream.
