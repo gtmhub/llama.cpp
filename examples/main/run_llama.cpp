@@ -1,6 +1,3 @@
-#include "common.h"
-#include "llama.h"
-
 #include <cassert>
 #include <cinttypes>
 #include <cmath>
@@ -10,9 +7,11 @@
 #include <iostream>
 #include <string>
 #include <vector>
-
 #include <signal.h>
 #include <unistd.h>
+
+#include "common.h"
+#include "llama.h"
 
 static console_state con_st;
 
@@ -251,9 +250,10 @@ int run_llama(llama_context * ctx, gpt_params params, std::ostream *outfile) {
         if (!input_noecho) {
             for (auto id : embd) {
                 *outfile << llama_token_to_str(ctx, id);
-                // outfile.flush();
+                outfile->flush();
+                // *outfile.flush();
             }
-            fflush(stdout);
+            // fflush(stdout);
         }
         // reset color to default if we there is no pending user input
         if (!input_noecho && (int)embd_inp.size() == n_consumed) {

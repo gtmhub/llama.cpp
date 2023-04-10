@@ -4,9 +4,11 @@
 
 #include "common.h"
 #include "llama.h"
+#include "llama.cpp"
 
 #include "crow.h"
 #include "../main/run_llama.cpp"
+#include "../embedding/run_llama_embedding.cpp"
 
 
 auto const BINDPORT = 8001;
@@ -36,6 +38,8 @@ int main(int argc, char ** argv) {
         lparams.seed       = params.seed;
         lparams.f16_kv     = params.memory_f16;
         lparams.use_mlock  = params.use_mlock;
+        lparams.logits_all = params.perplexity;
+        lparams.embedding  = true;
         
         ctx = llama_init_from_file(params.model.c_str(), lparams);
 
@@ -46,6 +50,7 @@ int main(int argc, char ** argv) {
     }
 
     crow::SimpleApp app;
+    // app.loglevel(crow::LogLevel::Warning);
 
     /// Python server will send a file name to you.
     /// You should open that file and give the pointer to run_llama.
@@ -60,23 +65,26 @@ int main(int argc, char ** argv) {
     ([&params, &ctx](const crow::request& req){
         auto body = crow::json::load(req.body);
         if (!body) return crow::response(crow::status::BAD_REQUEST);
+
+        // Create new params for this request only
+        gpt_params runparams = params;
         
         // Set run params from body
-        params.prompt         = body["prompt"].s();
-        params.n_predict      = body["n_predict"].i();
-        params.top_k          = body["top_k"].i();
-        params.n_ctx          = body["ctx_size"].i();
-        params.repeat_last_n  = body["repeat_last_n"].i();
-        params.top_p          = (float)body["top_p"].d();
-        params.temp           = (float)body["temp"].d();
-        params.repeat_penalty = (float)body["repeat_penalty"].d();
+        runparams.prompt         = body["prompt"].s();
+        runparams.n_predict      = body["n_predict"].i();
+        runparams.top_k          = body["top_k"].i();
+        runparams.n_ctx          = body["ctx_size"].i();
+        runparams.repeat_last_n  = body["repeat_last_n"].i();
+        runparams.top_p          = (float)body["top_p"].d();
+        runparams.temp           = (float)body["temp"].d();
+        runparams.repeat_penalty = (float)body["repeat_penalty"].d();
+        runparams.embedding      = false;
 
         // Open the tempfile into a stream.
         std::ofstream outfile(body["tempfile"].s(), std::ios::out);
 
         // Write output of LLaMA to file stream.
-        run_llama(ctx, params, &outfile);
-        outfile.close();
+        run_llama(ctx, runparams, &outfile);
 
         return crow::response(crow::status::OK);
     });
@@ -86,16 +94,18 @@ int main(int argc, char ** argv) {
         auto body = crow::json::load(req.body);
         if (!body) return crow::response(crow::status::BAD_REQUEST);
         
+        // Create new params for this request only
+        gpt_params runparams = params;
+
         // Set run params from body
-        params.prompt = body["prompt"].s();
-        params.embedding = true;
+        runparams.prompt    = body["prompt"].s();
+        runparams.embedding = true;
 
         // Open the tempfile into a stream.
         std::ofstream outfile(body["tempfile"].s(), std::ios::out);
 
         // Write output of LLaMA to file stream.
-        run_llama(ctx, params, &outfile);
-        outfile.close();
+        run_llama_embedding(ctx, runparams, &outfile);
 
         return crow::response(crow::status::OK);
     });
