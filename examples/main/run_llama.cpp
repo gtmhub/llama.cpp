@@ -156,9 +156,14 @@ int run_llama(llama_context * ctx, gpt_params params, std::ostream *outfile) {
     // the first thing we will do is to output the prompt, so set color accordingly
     set_console_color(con_st, CONSOLE_COLOR_PROMPT);
 
+    // Print the user prompt immediately so they dont have to wait for predictions
+    *outfile << params.prompt << std::flush;
+
     std::vector<llama_token> embd;
 
     while (n_remain != 0 || params.interactive) {
+        // ====================
+        // CORE -- CORE -- CORE
         // predict
         if (embd.size() > 0) {
             // infinite text generation via context swapping
@@ -187,6 +192,8 @@ int run_llama(llama_context * ctx, gpt_params params, std::ostream *outfile) {
                 return 1;
             }
         }
+        // CORE -- CORE -- CORE
+        // ====================
 
         n_past += embd.size();
         embd.clear();
@@ -233,6 +240,15 @@ int run_llama(llama_context * ctx, gpt_params params, std::ostream *outfile) {
 
             // decrement remaining sampling budget
             --n_remain;
+
+            // display predicted text
+            if (!input_noecho) {
+                for (auto id : embd) {
+                    const char* tok = llama_token_to_str(ctx, id);
+                    *outfile << tok << std::flush;
+                }
+            }
+
         } else {
             // some user input remains from prompt or interaction, forward it to processing
             while ((int) embd_inp.size() > n_consumed) {
@@ -246,15 +262,6 @@ int run_llama(llama_context * ctx, gpt_params params, std::ostream *outfile) {
             }
         }
 
-        // display text
-        if (!input_noecho) {
-            for (auto id : embd) {
-                *outfile << llama_token_to_str(ctx, id);
-                outfile->flush();
-                // *outfile.flush();
-            }
-            // fflush(stdout);
-        }
         // reset color to default if we there is no pending user input
         if (!input_noecho && (int)embd_inp.size() == n_consumed) {
             set_console_color(con_st, CONSOLE_COLOR_DEFAULT);
