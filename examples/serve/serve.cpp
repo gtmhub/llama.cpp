@@ -81,7 +81,7 @@ int main(int argc, char ** argv) {
         runparams.embedding      = false;
 
         // Open the tempfile into a stream.
-        std::fstream outfile(body["tempfile"].s(), std::ios::out);
+        std::ofstream outfile(body["tempfile"].s(), std::ios::out);
 
         // Write output of LLaMA to file stream.
         run_llama(ctx, runparams, &outfile);
